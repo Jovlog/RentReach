@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentReach - Landlord Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+
+<div class="navbar">
+  <a class="navbar-brand" href="#">Rent<span>Reach</span></a>
+  <div class="navbar-right">
+    <span class="navbar-user" id="topbarName" style="font-weight:600;color:#1e293b;"></span>
+    <span class="badge badge-green">Landlord</span>
+    <button class="btn btn-danger btn-sm" id="btnLogout">Logout</button>
+  </div>
+</div>
+
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-label">Menu</div>
+    <a href="#" class="active" id="navDash" onclick="showSec('dash')">🏠 Dashboard</a>
+    <a href="#" id="navUnits" onclick="showSec('units')">🏢 My Units</a>
+    <a href="#" id="navAdd" onclick="showSec('add')">➕ Add Unit</a>
+    <div class="sidebar-label">Tenants</div>
+    <a href="#" id="navBookings" onclick="showSec('bookings')">📋 Bookings <span id="pendingBadge" class="notif-badge" style="display:none;"></span></a>
+    <div class="sidebar-label">Account</div>
+    <a href="#" id="navProfile" onclick="showSec('profile')">👤 Profile</a>
+    <button onclick="doLogout()">🚪 Logout</button>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div id="sec-dash">
+      <div class="page-title">Dashboard</div>
+      <div class="page-subtitle" id="welcomeMsg">Welcome!</div>
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-icon ic-blue">🏢</div><div><div class="stat-val" id="stUnits">0</div><div class="stat-lbl">My Units</div></div></div>
+        <div class="stat-box"><div class="stat-icon ic-yellow">📋</div><div><div class="stat-val" id="stPending">0</div><div class="stat-lbl">Pending</div></div></div>
+        <div class="stat-box"><div class="stat-icon ic-green">✅</div><div><div class="stat-val" id="stApproved">0</div><div class="stat-lbl">Approved</div></div></div>
+        <div class="stat-box"><div class="stat-icon ic-red">🔒</div><div><div class="stat-val" id="stBooked">0</div><div class="stat-lbl">Booked</div></div></div>
+        <div class="stat-box"><div class="stat-icon ic-green">💰</div><div><div class="stat-val" id="stPaid">0</div><div class="stat-lbl">Paid</div></div></div>
+      </div>
+      <div class="page-title" style="font-size:16px;margin-bottom:12px;">Recent Bookings</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Unit</th><th>Tenant</th><th>Move-in</th><th>Status</th><th>Action</th><th>Delete</th></tr></thead>
+          <tbody id="recentBookings"><tr><td colspan="6" style="color:#94a3b8;text-align:center;">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MY UNITS -->
+    <div id="sec-units" style="display:none;">
+      <div class="page-title">My Units</div>
+      <div class="page-subtitle">All your listed properties</div>
+      <div class="prop-grid" id="unitsGrid"></div>
+    </div>
+
+    <!-- ADD UNIT -->
+    <div id="sec-add" style="display:none;">
+      <div class="page-title">Add New Unit</div>
+      <div class="page-subtitle">Fill in the details below</div>
+      <div class="form-section">
+        <h3>Unit Details</h3>
+        <form id="addUnitForm">
+          <div class="form-row">
+            <div class="form-group"><label>Unit Name</label><input type="text" id="unitName" placeholder="e.g. Studio Unit 2B" required></div>
+            <div class="form-group"><label>Address</label><input type="text" id="unitAddress" placeholder="e.g. Brgy. San Jose" required></div>
+          </div>
+          <div class="form-group"><label>Description</label><textarea id="unitDescription" placeholder="Describe the unit..."></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label>Price Per Month (₱)</label><input type="number" id="unitPrice" placeholder="5000" required></div>
+            <div class="form-group"><label>Number of Rooms</label><input type="number" id="unitRooms" placeholder="1" min="1" value="1"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Deposit (₱)</label><input type="number" id="unitDeposit" placeholder="0"></div>
+            <div class="form-group"><label>Advance Payment (₱)</label><input type="number" id="unitAdvance" placeholder="0"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Unit Type</label>
+              <select id="unitType">
+                <option value="">-- Select Type --</option>
+                <option value="Studio">Studio</option>
+                <option value="Bedroom">Bedroom</option>
+                <option value="Apartment">Apartment</option>
+                <option value="Boarding House">Boarding House</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Image URL (optional)</label><input type="url" id="unitImageUrl" placeholder="https://..."></div>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="unitStatus">
+              <option value="available">Available</option>
+              <option value="booked">Booked</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Add Unit</button>
+          <div id="addUnitFeedback" style="margin-top:12px;"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- BOOKINGS -->
+    <div id="sec-bookings" style="display:none;">
+      <div class="page-title">Booking Requests</div>
+      <div class="page-subtitle">Approve, reject or manage tenant bookings</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Unit</th><th>Tenant</th><th>Move-in</th><th>Booking</th><th>Payment</th><th>Delete</th></tr></thead>
+          <tbody id="allBookings"><tr><td colspan="6" style="color:#94a3b8;text-align:center;">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div id="sec-profile" style="display:none;">
+      <div class="page-title">My Profile</div>
+      <div class="page-subtitle">Your account information</div>
+      <div class="form-section">
+        <h3>Account Info</h3>
+        <p style="font-size:13px;line-height:2.2;color:#475569;">
+          <strong>Name:</strong> <span id="profName">—</span><br>
+          <strong>Email:</strong> <span id="profEmail">—</span><br>
+          <strong>Role:</strong> <span class="badge badge-green">Landlord</span><br>
+          <strong>Total Units:</strong> <span id="profUnits">—</span><br>
+          <strong>Member since:</strong> <span id="profDate">—</span>
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>&copy; <strong>RentReach</strong> 2026 — Authorized access only</footer>
+
+<!-- APPROVE MODAL -->
+<div class="modal-bg" id="approveModal">
+  <div class="modal-box" style="width:440px;">
+    <div class="modal-head"><h3>Approve Booking</h3><button class="modal-close" onclick="closeApproveModal()">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="amBookingId">
+      <div style="font-size:13px;color:#475569;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #f1f5f9;line-height:2.2;">
+        <div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">Tenant</span><strong id="amTenant"></strong></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">Unit</span><strong id="amUnit"></strong></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">Move-in</span><strong id="amMoveInDisplay"></strong></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">Duration</span><strong id="amMonths"></strong></div>
+        <div style="display:flex;justify-content:space-between;"><span style="color:#94a3b8;">Monthly Rent</span><strong>₱<span id="amMonthlyRent">0</span></strong></div>
+      </div>
+      <div style="background:#f8fafc;border-radius:8px;padding:14px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;">
+          <span style="color:#64748b;">Total Due</span>
+          <span style="color:#dc2626;">₱<span id="amTotalDue">0</span></span>
+        </div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:6px;">Monthly Schedule</div>
+      <div id="amSchedule" style="max-height:160px;overflow-y:auto;margin-bottom:16px;"></div>
+      <button class="btn btn-success btn-full" onclick="confirmApprove()">✅ Confirm & Approve</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="modal-bg" id="paymentModal">
+  <div class="modal-box" style="width:460px;">
+    <div class="modal-head"><h3>Manage Payment</h3><button class="modal-close" onclick="closePaymentModal()">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="pmBookingId">
+      <div style="font-size:13px;color:#475569;margin-bottom:14px;line-height:1.9;padding-bottom:14px;border-bottom:1px solid #f1f5f9;">
+        <strong style="color:#1e293b;">Tenant:</strong> <span id="pmTenant"></span><br>
+        <strong style="color:#1e293b;">Unit:</strong> <span id="pmUnit"></span><br>
+        <strong style="color:#1e293b;">Monthly Rent:</strong> ₱<span id="pmRent">0</span>
+      </div>
+      <div style="font-size:13px;color:#475569;margin-bottom:14px;line-height:2.2;">
+        <div style="display:flex;justify-content:space-between;"><span>Total Due</span><strong>₱<span id="pmTotalDue">0</span></strong></div>
+        <div style="display:flex;justify-content:space-between;"><span>Total Paid</span><strong style="color:#16a34a;">₱<span id="pmTotalPaid">0</span></strong></div>
+        <div style="display:flex;justify-content:space-between;border-top:1px dashed #e2e8f0;padding-top:6px;margin-top:4px;"><span style="font-weight:600;">Remaining Balance</span><strong style="color:#dc2626;font-size:15px;">₱<span id="pmBalance">0</span></strong></div>
+      </div>
+      <div id="pmHistory" style="margin-bottom:14px;"></div>
+      <div style="border-top:1px solid #f1f5f9;padding-top:14px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px;">Deduct Payment Received</div>
+        <div class="form-group">
+          <label>Amount Received (₱)</label>
+          <input type="number" id="pmAmountPaid" placeholder="e.g. 3000" min="1" oninput="previewBalance()">
+        </div>
+        <div id="pmPreview" style="font-size:13px;color:#64748b;margin-bottom:12px;min-height:18px;"></div>
+        <div class="form-group">
+          <label>Note (optional)</label>
+          <input type="text" id="pmNote" placeholder="e.g. Cash, GCash...">
+        </div>
+        <div id="pmFeedback"></div>
+        <button class="btn btn-success btn-full" onclick="confirmPayment()">Deduct & Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCYvy3GB1vNUPzGdClU1lEx0p-Ypwh996c",
+  authDomain: "rentreach-947b7.firebaseapp.com",
+  projectId: "rentreach-947b7",
+  storageBucket: "rentreach-947b7.firebasestorage.app",
+  messagingSenderId: "146021863979",
+  appId: "1:146021863979:web:6e4029254dcc1e7563906e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+let currentUser = null;
+let allUnits = [], allBookings = [];
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location.href = "login.html"; return; }
+  currentUser = user;
+  document.getElementById("profEmail").textContent = user.email;
+  try {
+    const snap = await getDocs(query(collection(db, "users"), where("uid", "==", user.uid)));
+    let name = user.email;
+    snap.forEach(d => {
+      const data = d.data();
+      if (data.name) name = data.name;
+      if (document.getElementById("profName")) document.getElementById("profName").textContent = data.name || "—";
+      if (document.getElementById("profDate")) document.getElementById("profDate").textContent = data.createdAt ? new Date(data.createdAt).toLocaleDateString("en-PH",{year:"numeric",month:"long",day:"numeric"}) : "—";
+    });
+    document.getElementById("topbarName").textContent = name;
+    document.getElementById("welcomeMsg").textContent = "Welcome, " + name;
+  } catch(e) {
+    document.getElementById("topbarName").textContent = user.email;
+    document.getElementById("welcomeMsg").textContent = "Welcome, " + user.email;
+  }
+  loadUnits();
+  loadBookings();
+  initForm();
+});
+
+function doLogoutFn() { signOut(auth).then(() => window.location.href = "login.html"); }
+window.doLogout = doLogoutFn;
+document.querySelectorAll("#btnLogout").forEach(b => b.addEventListener("click", doLogoutFn));
+
+// ── LOAD UNITS ──
+// BUG FIX: Query by BOTH ownerId AND landlordUid so apartments from the mobile app
+// (which may only save landlordUid) are also included. Merge both query results.
+function loadUnits() {
+  const unitMap = new Map(); // id → unit object (deduplicates across both queries)
+
+  function processApartmentSnap(snap) {
+    snap.forEach(d => {
+      const r = d.data();
+      const imgs = r.imageUrls || [];
+      const img = (Array.isArray(imgs) && imgs.length > 0) ? imgs[0] : (r.imageUrl || r.image || null);
+      const isAvail = r.isAvailable !== undefined ? r.isAvailable : (r.status !== "booked");
+      unitMap.set(d.id, {
+        id: d.id,
+        title: r.title || r.name || "Untitled",
+        address: r.location || r.address || "—",
+        city: r.city || "",
+        description: r.description || "",
+        pricePerMonth: r.pricePerMonth || r.price || r.rent || 0,
+        rooms: r.rooms || r.bedrooms || "—",
+        unitType: r.unitType || r.type || "",
+        imageUrl: img,
+        status: isAvail ? "available" : "booked",
+        ownerEmail: r.ownerEmail || r.landlordEmail || "",
+        ownerId: r.ownerId || r.landlordUid || "",
+        deposit: r.deposit || 0,
+        advancePayment: r.advancePayment || 0,
+        createdAt: r.createdAt ? (r.createdAt.toMillis ? r.createdAt.toMillis() : r.createdAt) : 0
+      });
+    });
+
+    // Rebuild allUnits from the merged map
+    allUnits = [...unitMap.values()];
+    document.getElementById("stUnits").textContent = allUnits.length;
+    document.getElementById("stBooked").textContent = allUnits.filter(u => u.status === "booked").length;
+    if (document.getElementById("profUnits")) document.getElementById("profUnits").textContent = allUnits.length + " unit(s)";
+    renderUnits();
+
+    // BUG FIX: Re-run Listener 2 every time units change so new units are always covered
+    resubscribeByRentalId();
+  }
+
+  // Listener A: apartments where ownerId == landlord uid (web dashboard)
+  onSnapshot(query(collection(db, "apartments"), where("ownerId",     "==", currentUser.uid)), processApartmentSnap);
+  // Listener B: apartments where landlordUid == landlord uid (mobile app)
+  onSnapshot(query(collection(db, "apartments"), where("landlordUid", "==", currentUser.uid)), processApartmentSnap);
+}
+
+function renderUnits() {
+  const grid = document.getElementById("unitsGrid");
+  if (!allUnits.length) { grid.innerHTML = '<p style="color:#94a3b8;">No units yet. Add your first one!</p>'; return; }
+  grid.innerHTML = allUnits.map(d => {
+    const img = d.imageUrl;
+    const status = d.status || "available";
+    const bc = status === "available" ? "badge-green" : "badge-red";
+    const addr = d.address + (d.city ? ", " + d.city : "");
+    return `<div class="prop-card">
+      ${img
+        ? `<div style="width:100%;height:160px;overflow:hidden;background:#f1f5f9;">
+             <img src="${img}" style="width:100%;height:100%;object-fit:cover;display:block;"
+               onerror="this.parentElement.innerHTML='<div class=no-img>No photo</div>';">
+           </div>`
+        : `<div class="no-img">No photo</div>`}
+      <div class="prop-info">
+        <span class="badge ${bc}">${status}</span>
+        <h4 style="margin-top:6px;">${d.title}</h4>
+        <p class="prop-addr">${addr}</p>
+        ${d.unitType ? `<p style="font-size:12px;color:#64748b;margin-bottom:2px;">🏠 ${d.unitType}</p>` : ""}
+        <p style="font-size:12px;color:#64748b;margin-bottom:4px;">🛏 ${d.rooms} room(s)</p>
+        <p class="prop-price">₱${Number(d.pricePerMonth).toLocaleString()} <span>/mo</span></p>
+      </div>
+      <div class="prop-footer">
+        <button class="btn btn-danger btn-sm" onclick="deleteUnit('${d.id}')">Delete</button>
+        <button class="btn btn-outline btn-sm" onclick="toggleStatus('${d.id}','${status}')">
+          ${status === "available" ? "Mark Booked" : "Mark Available"}
+        </button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── LOAD BOOKINGS ──
+// Merges two listener groups:
+// 1. landlordUid == currentUser.uid  → web app bookings (renter.html saves the landlord's
+//    uid here using the apartment's ownerId field)
+// 2. rentalId/apartmentId/etc in [landlord unit IDs] → mobile app bookings that may not
+//    save landlordUid at all
+let _bookingsByLandlordUid = [];
+let _bookingsByRentalId    = [];
+
+// BUG FIX: Store Listener 2 unsubscribe functions so we can tear down and re-subscribe
+// whenever allUnits changes (e.g., landlord adds a new unit after page load).
+let _rentalIdUnsubs = [];
+
+function mergeAndRenderBookings() {
+  const seen = new Set();
+  allBookings = [];
+  [..._bookingsByLandlordUid, ..._bookingsByRentalId].forEach(b => {
+    if (!seen.has(b.id)) { seen.add(b.id); allBookings.push(b); }
+  });
+
+  const pendingCount = allBookings.filter(b => b.status === "pending").length;
+  const badge = document.getElementById("pendingBadge");
+  if (badge) { badge.textContent = pendingCount; badge.style.display = pendingCount > 0 ? "inline-flex" : "none"; }
+  document.getElementById("stPending").textContent  = allBookings.filter(b => b.status === "pending").length;
+  document.getElementById("stApproved").textContent = allBookings.filter(b => b.status === "approved").length;
+  document.getElementById("stPaid").textContent     = allBookings.filter(b => b.paymentStatus === "paid" || b.paymentStatus === "partial").length;
+  renderRecentBookings();
+  renderAllBookings();
+}
+
+async function enrichBookings(bookings) {
+  const uids = [...new Set(bookings.map(b => b.tenantUid).filter(Boolean))];
+  const nameMap = {};
+  await Promise.all(uids.map(async uid => {
+    try {
+      const q = await getDocs(query(collection(db, "users"), where("uid", "==", uid)));
+      q.forEach(d => { if (d.data().name) nameMap[uid] = d.data().name; });
+    } catch(e) {}
+  }));
+  return bookings.map(b => ({ ...b, tenantName: nameMap[b.tenantUid] || b.tenantEmail || b.tenantName || "—" }));
+}
+
+// BUG FIX: Replaced the fragile setInterval timing hack with a reactive function.
+// Called by loadUnits() every time allUnits changes so new units are always covered,
+// and properly REPLACES stale entries instead of only ever pushing new ones.
+function resubscribeByRentalId() {
+  // Tear down all previous Listener 2 subscriptions
+  _rentalIdUnsubs.forEach(unsub => unsub());
+  _rentalIdUnsubs = [];
+  _bookingsByRentalId = [];
+
+  const unitIds = allUnits.map(u => u.id).filter(Boolean);
+  if (!unitIds.length) return;
+
+  const chunks = [];
+  for (let i = 0; i < unitIds.length; i += 30) chunks.push(unitIds.slice(i, i + 30));
+
+  chunks.forEach(chunk => {
+    const chunkSet = new Set(chunk);
+    ["rentalId", "apartmentId", "propertyId", "unitId"].forEach(field => {
+      const q2 = query(collection(db, "bookings"), where(field, "in", chunk));
+      const unsub = onSnapshot(q2, async snap => {
+        const raw = [];
+        snap.forEach(d => raw.push({ id: d.id, ...d.data() }));
+        const enriched = await enrichBookings(raw);
+
+        // BUG FIX: Remove stale entries for this query's scope, then re-add with
+        // fresh data. Old code only pushed new IDs, so status updates were invisible.
+        _bookingsByRentalId = _bookingsByRentalId.filter(b =>
+          !(b[field] && chunkSet.has(b[field]))
+        );
+        enriched.forEach(b => _bookingsByRentalId.push(b));
+        mergeAndRenderBookings();
+      });
+      _rentalIdUnsubs.push(unsub);
+    });
+  });
+}
+
+function loadBookings() {
+  // LISTENER 1: bookings saved with landlordUid (web app)
+  // renter.html saves selectedUnit.ownerId as landlordUid, so every web booking
+  // triggers this snapshot immediately.
+  const q1 = query(collection(db, "bookings"), where("landlordUid", "==", currentUser.uid));
+  onSnapshot(q1, async snap => {
+    const raw = [];
+    snap.forEach(d => raw.push({ id: d.id, ...d.data() }));
+    _bookingsByLandlordUid = await enrichBookings(raw);
+    mergeAndRenderBookings();
+  });
+
+  // LISTENER 2 (resubscribeByRentalId) is now wired into loadUnits() and fires
+  // automatically every time allUnits updates — no setInterval needed.
+}
+
+function renderRecentBookings() {
+  const tb = document.getElementById("recentBookings");
+  const list = [...allBookings].sort((a,b) => (b.createdAt||0) - (a.createdAt||0)).slice(0, 5);
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="6" style="color:#94a3b8;text-align:center;">No bookings yet</td></tr>'; return; }
+  tb.innerHTML = list.map(b => {
+    const bc = b.status === "approved" ? "badge-green" : b.status === "rejected" ? "badge-red" : "badge-yellow";
+    const actions = b.status === "pending"
+      ? `<button class="btn btn-success btn-sm" onclick="approveBooking('${b.id}')">Approve</button>
+         <button class="btn btn-danger btn-sm" onclick="rejectBooking('${b.id}')">Reject</button>`
+      : "—";
+    return `<tr>
+      <td>${b.unitName || "—"}</td>
+      <td><div style="font-weight:500;">${b.tenantName || "—"}</div><div style="font-size:11px;color:#94a3b8;">${b.tenantEmail || ""}</div></td>
+      <td>${b.moveInDate || "—"}</td>
+      <td><span class="badge ${bc}">${b.status}</span></td>
+      <td>${actions}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteBooking('${b.id}','${(b.tenantEmail||'').replace(/'/g,"\\'")}')">Delete</button></td>
+    </tr>`;
+  }).join("");
+}
+
+function renderAllBookings() {
+  const tb = document.getElementById("allBookings");
+  if (!allBookings.length) { tb.innerHTML = '<tr><td colspan="6" style="color:#94a3b8;text-align:center;">No bookings yet</td></tr>'; return; }
+  const list = [...allBookings].sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+  tb.innerHTML = list.map(b => {
+    const bc = b.status === "approved" ? "badge-green" : b.status === "rejected" ? "badge-red" : "badge-yellow";
+    const months = b.durationMonths || 1;
+    const totalAmt = b.totalAmount || ((b.pricePerMonth || b.price || 0) * months);
+
+    const bookingActions = b.status === "pending"
+      ? `<button class="btn btn-success btn-sm" onclick="approveBooking('${b.id}')">Approve</button>
+         <button class="btn btn-danger btn-sm" onclick="rejectBooking('${b.id}')">Reject</button>`
+      : `<span class="badge ${bc}">${b.status}</span>`;
+
+    let paymentHtml = "—";
+    if (b.status === "approved") {
+      const totalDue = b.totalDue || b.pricePerMonth || b.price || 0;
+      const totalPaid = b.totalPaid || 0;
+      const balance = b.balance !== undefined ? b.balance : totalDue;
+      const ps = b.paymentStatus || "pending";
+      const payBadge = ps === "paid" ? "badge-green" : ps === "partial" ? "badge-blue" : "badge-yellow";
+      const payLabel = ps === "paid" ? "✅ Paid" : ps === "partial" ? "🔄 Partial" : "⚠️ Unpaid";
+      paymentHtml = `<div style="display:flex;flex-direction:column;gap:3px;">
+        <span class="badge ${payBadge}">${payLabel}</span>
+        <span style="font-size:11px;color:#64748b;">Paid: ₱${Number(totalPaid).toLocaleString()}</span>
+        <span style="font-size:11px;color:#dc2626;font-weight:600;">Balance: ₱${Number(balance).toLocaleString()}</span>
+        <button class="btn btn-outline btn-sm" style="font-size:11px;margin-top:2px;" onclick="openPaymentModal('${b.id}','${(b.tenantEmail||'').replace(/'/g,"\\'")}','${(b.unitName||'').replace(/'/g,"\\'")}',${b.pricePerMonth||b.price||0})">+ Record Payment</button>
+      </div>`;
+    }
+
+    return `<tr>
+      <td><div style="font-weight:600;">${b.unitName || "—"}</div><div style="font-size:11px;color:#94a3b8;">${months} month(s) · ₱${Number(totalAmt).toLocaleString()}</div></td>
+      <td><div style="font-weight:500;">${b.tenantName || "—"}</div><div style="font-size:11px;color:#94a3b8;">${b.tenantEmail || ""}</div></td>
+      <td>${b.moveInDate || "—"}</td>
+      <td>${bookingActions}</td>
+      <td>${paymentHtml}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteBooking('${b.id}','${(b.tenantEmail||'').replace(/'/g,"\\'")}')">Delete</button></td>
+    </tr>`;
+  }).join("");
+}
+
+// ── ADD UNIT ──
+function initForm() {
+  const form = document.getElementById("addUnitForm");
+  if (!form || form.dataset.bound) return;
+  form.dataset.bound = "true";
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const fb = document.getElementById("addUnitFeedback");
+    fb.innerHTML = '<div class="alert alert-info">Saving...</div>';
+    const title = document.getElementById("unitName").value.trim();
+    const address = document.getElementById("unitAddress").value.trim();
+    const price = Number(document.getElementById("unitPrice").value) || 0;
+    if (!title || !address || !price) {
+      fb.innerHTML = '<div class="alert alert-error">Please fill in Unit Name, Address and Price.</div>';
+      return;
+    }
+    const imgUrl = document.getElementById("unitImageUrl").value.trim();
+    try {
+      await addDoc(collection(db, "apartments"), {
+        title,
+        location: address,
+        address,
+        description: document.getElementById("unitDescription").value.trim(),
+        pricePerMonth: price,
+        deposit: Number(document.getElementById("unitDeposit").value) || 0,
+        advancePayment: Number(document.getElementById("unitAdvance").value) || 0,
+        rooms: Number(document.getElementById("unitRooms").value) || 1,
+        unitType: document.getElementById("unitType").value || "",
+        imageUrls: imgUrl ? [imgUrl] : [],
+        imageUrl: imgUrl || null,
+        isAvailable: document.getElementById("unitStatus").value === "available",
+        status: document.getElementById("unitStatus").value,
+        ownerId: currentUser.uid,
+        ownerEmail: currentUser.email,
+        landlordUid: currentUser.uid,
+        landlordEmail: currentUser.email,
+        createdAt: Date.now()
+      });
+      fb.innerHTML = '<div class="alert alert-success">Unit added!</div>';
+      form.reset();
+      setTimeout(() => { fb.innerHTML = ""; showSec("units"); }, 1500);
+    } catch(err) {
+      fb.innerHTML = `<div class="alert alert-error">Error: ${err.message}</div>`;
+    }
+  });
+}
+
+// ── UNIT ACTIONS ──
+window.deleteUnit = async function(id) {
+  if (!confirm("Delete this unit?")) return;
+  try { await deleteDoc(doc(db, "apartments", id)); }
+  catch(e) { alert("Error: " + e.message); }
+};
+window.toggleStatus = async function(id, current) {
+  const newStatus = current === "available" ? "booked" : "available";
+  await updateDoc(doc(db, "apartments", id), { status: newStatus, isAvailable: newStatus === "available" });
+};
+
+// ── BOOKING ACTIONS ──
+window.deleteBooking = async function(id, email) {
+  if (!confirm(`Remove booking for "${email}"?`)) return;
+  try { await deleteDoc(doc(db, "bookings", id)); }
+  catch(e) { alert("Error: " + e.message); }
+};
+
+window.approveBooking = function(id) {
+  const b = allBookings.find(b => b.id === id);
+  if (!b) return;
+  const months = b.durationMonths || 1;
+  const rent = b.pricePerMonth || b.price || 0;
+  const totalDue = rent * months;
+  const moveIn = b.moveInDate || "";
+
+  document.getElementById("amBookingId").value = id;
+  document.getElementById("amTenant").textContent = b.tenantName || b.tenantEmail || "—";
+  document.getElementById("amUnit").textContent = b.unitName || "—";
+  document.getElementById("amMoveInDisplay").textContent = moveIn || "—";
+  document.getElementById("amMonths").textContent = months + " month" + (months > 1 ? "s" : "");
+  document.getElementById("amMonthlyRent").textContent = Number(rent).toLocaleString();
+  document.getElementById("amTotalDue").textContent = Number(totalDue).toLocaleString();
+
+  let scheduleHtml = "";
+  if (moveIn) {
+    const start = new Date(moveIn);
+    for (let i = 0; i < months; i++) {
+      const d = new Date(start); d.setMonth(d.getMonth() + i);
+      const label = d.toLocaleDateString("en-PH", {year:"numeric",month:"long"});
+      scheduleHtml += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #f1f5f9;color:#475569;">
+        <span>Month ${i+1} — ${label}</span><span style="font-weight:600;">₱${Number(rent).toLocaleString()}</span>
+      </div>`;
+    }
+  }
+  document.getElementById("amSchedule").innerHTML = scheduleHtml || '<p style="font-size:12px;color:#94a3b8;">No move-in date provided.</p>';
+  document.getElementById("approveModal").classList.add("open");
+};
+
+window.closeApproveModal = function() { document.getElementById("approveModal").classList.remove("open"); };
+
+window.confirmApprove = async function() {
+  const id = document.getElementById("amBookingId").value;
+  const b = allBookings.find(b => b.id === id);
+  if (!b) return;
+  const months = b.durationMonths || 1;
+  const rent = b.pricePerMonth || b.price || 0;
+  const totalDue = rent * months;
+  const moveIn = b.moveInDate || "";
+
+  const monthlySchedule = [];
+  if (moveIn) {
+    const start = new Date(moveIn);
+    for (let i = 0; i < months; i++) {
+      const d = new Date(start); d.setMonth(d.getMonth() + i);
+      monthlySchedule.push({ month: i+1, label: d.toLocaleDateString("en-PH",{year:"numeric",month:"long"}), dueDate: d.getTime(), amount: rent, paid: 0, balance: rent, status: "unpaid" });
+    }
+  }
+
+  try {
+    await updateDoc(doc(db, "bookings", id), {
+      status: "approved", paymentStatus: "pending",
+      durationMonths: months, totalDue, totalPaid: 0,
+      balance: totalDue, paymentHistory: [], monthlySchedule
+    });
+    closeApproveModal();
+  } catch(e) { alert("Error: " + e.message); }
+};
+
+window.rejectBooking = async function(id) {
+  await updateDoc(doc(db, "bookings", id), { status: "rejected" });
+};
+
+// ── PAYMENT ──
+window.openPaymentModal = function(id, email, unitName, price) {
+  const b = allBookings.find(b => b.id === id);
+  if (!b) return;
+  const history = b.paymentHistory || [];
+  const schedule = b.monthlySchedule || [];
+  const totalDue = b.totalDue || price || 0;
+  const totalPaid = b.totalPaid || 0;
+  const balance = b.balance !== undefined ? b.balance : totalDue;
+
+  document.getElementById("pmBookingId").value = id;
+  document.getElementById("pmTenant").textContent = b.tenantName || email;
+  document.getElementById("pmUnit").textContent = unitName;
+  document.getElementById("pmRent").textContent = Number(price).toLocaleString();
+  document.getElementById("pmAmountPaid").value = "";
+  document.getElementById("pmAmountPaid").dataset.balance = balance;
+  document.getElementById("pmNote").value = "";
+  document.getElementById("pmFeedback").innerHTML = "";
+  document.getElementById("pmPreview").textContent = "";
+  document.getElementById("pmTotalDue").textContent = Number(totalDue).toLocaleString();
+  document.getElementById("pmTotalPaid").textContent = Number(totalPaid).toLocaleString();
+  document.getElementById("pmBalance").textContent = Number(balance).toLocaleString();
+
+  let histHtml = "";
+  if (schedule.length > 0) {
+    histHtml += `<div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:6px;">Monthly Schedule</div><div style="max-height:140px;overflow-y:auto;margin-bottom:12px;">`;
+    schedule.forEach(m => {
+      const sc = m.status==="paid"?"#16a34a":m.status==="partial"?"#2563eb":"#dc2626";
+      const sl = m.status==="paid"?"Paid":m.status==="partial"?"Partial":"Unpaid";
+      histHtml += `<div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;font-size:12px;padding:6px 0;border-bottom:1px solid #f1f5f9;align-items:center;">
+        <span style="color:#475569;">${m.label}</span>
+        <span style="color:#64748b;">₱${Number(m.paid||0).toLocaleString()} / ₱${Number(m.amount).toLocaleString()}</span>
+        <span style="font-weight:600;color:${sc};">${sl}</span>
+      </div>`;
+    });
+    histHtml += "</div>";
+  }
+  if (history.length > 0) {
+    histHtml += `<div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:6px;">Payment History</div><div style="max-height:120px;overflow-y:auto;">`;
+    history.forEach(p => {
+      histHtml += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #f1f5f9;color:#475569;">
+        <span>₱${Number(p.amount).toLocaleString()} — ${p.note||"Payment"}</span>
+        <span style="color:#94a3b8;">${new Date(p.date).toLocaleDateString("en-PH")}</span>
+      </div>`;
+    });
+    histHtml += "</div>";
+  }
+  if (!schedule.length && !history.length) histHtml = '<p style="font-size:12px;color:#94a3b8;">No payment records yet.</p>';
+  document.getElementById("pmHistory").innerHTML = histHtml;
+  document.getElementById("paymentModal").classList.add("open");
+};
+
+window.closePaymentModal = function() { document.getElementById("paymentModal").classList.remove("open"); };
+
+window.previewBalance = function() {
+  const input = document.getElementById("pmAmountPaid");
+  const amount = Number(input.value) || 0;
+  const currentBalance = Number(input.dataset.balance) || 0;
+  const preview = document.getElementById("pmPreview");
+  if (amount <= 0) { preview.textContent = ""; return; }
+  const newBalance = Math.max(0, currentBalance - amount);
+  preview.innerHTML = `After deduction → Balance: <strong style="color:${newBalance===0?'#16a34a':'#dc2626'};">₱${Number(newBalance).toLocaleString()}</strong>`;
+};
+
+window.confirmPayment = async function() {
+  const id = document.getElementById("pmBookingId").value;
+  const amountPaid = Number(document.getElementById("pmAmountPaid").value) || 0;
+  const note = document.getElementById("pmNote").value.trim();
+  const fb = document.getElementById("pmFeedback");
+  if (!amountPaid || amountPaid <= 0) { fb.innerHTML = '<div class="alert alert-error">Please enter a valid amount.</div>'; return; }
+
+  const b = allBookings.find(b => b.id === id);
+  if (!b) return;
+
+  const history = b.paymentHistory || [];
+  const newPayment = { amount: amountPaid, note: note || "Cash payment", date: Date.now() };
+  const updatedHistory = [...history, newPayment];
+  const totalPaid = updatedHistory.reduce((sum, p) => sum + (p.amount||0), 0);
+  const totalDue = b.totalDue || b.pricePerMonth || b.price || 0;
+  const balance = Math.max(0, totalDue - totalPaid);
+  const paymentStatus = balance <= 0 ? "paid" : "partial";
+
+  const schedule = [...(b.monthlySchedule || [])];
+  let rem = amountPaid;
+  for (let i = 0; i < schedule.length && rem > 0; i++) {
+    if (schedule[i].status === "paid") continue;
+    const needed = schedule[i].amount - (schedule[i].paid||0);
+    if (rem >= needed) { schedule[i] = {...schedule[i], paid: schedule[i].amount, balance: 0, status: "paid"}; rem -= needed; }
+    else { schedule[i] = {...schedule[i], paid: (schedule[i].paid||0)+rem, balance: needed-rem, status: "partial"}; rem = 0; }
+  }
+
+  try {
+    await updateDoc(doc(db, "bookings", id), { paymentHistory: updatedHistory, monthlySchedule: schedule, totalPaid, totalDue, balance, paymentStatus, lastPaymentDate: Date.now() });
+    fb.innerHTML = '<div class="alert alert-success">Payment recorded!</div>';
+    setTimeout(() => { closePaymentModal(); }, 1000);
+  } catch(e) { fb.innerHTML = `<div class="alert alert-error">Error: ${e.message}</div>`; }
+};
+</script>
+
+<script>
+function showSec(name) {
+  ["dash","units","add","bookings","profile"].forEach(s => {
+    document.getElementById("sec-"+s).style.display = s===name?"block":"none";
+  });
+  document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
+  const n = {dash:"navDash",units:"navUnits",add:"navAdd",bookings:"navBookings",profile:"navProfile"};
+  if (n[name]) document.getElementById(n[name]).classList.add("active");
+}
+</script>
+</body>
+</html>

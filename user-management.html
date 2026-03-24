@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Management – RentReach Admin</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<!-- BUG FIX: Removed undefined .admin-body class. Replaced broken ul/li sidebar
+     with the direct <a> structure the CSS expects. Added navbar and proper layout. -->
+<body>
+
+<div class="navbar">
+  <a class="navbar-brand" href="#">Rent<span>Reach</span></a>
+  <div class="navbar-right">
+    <span class="badge badge-purple">Admin</span>
+    <button class="btn btn-danger btn-sm" id="btnLogout">Logout</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-label">Management</div>
+    <a href="user-management.html" class="active">👥 User Management</a>
+    <a href="property-moderation.html">🏢 Property Moderation</a>
+    <div class="sidebar-label">Account</div>
+    <a href="profile.html">👤 Profile</a>
+  </div>
+
+  <div class="main">
+    <div class="page-title">User Directory</div>
+    <div class="page-subtitle">All registered accounts</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody">
+          <tr><td colspan="2" style="color:#94a3b8;text-align:center;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer>&copy; <strong>RentReach</strong> 2026 — Authorized access only</footer>
+
+<script type="module" src="admin-script.js"></script>
+</body>
+</html>

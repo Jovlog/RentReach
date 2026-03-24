@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentReach - Browse Units</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="navbar">
+  <a class="navbar-brand" href="#">Rent<span>Reach</span></a>
+  <div class="navbar-right">
+    <span id="topbarName" style="font-size:13px;font-weight:600;color:#1e293b;margin-right:4px;"></span>
+    <button class="btn btn-danger btn-sm" id="btnLogout">Logout</button>
+  </div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-label">Menu</div>
+    <a href="#" class="active" id="navBrowse" onclick="showSec('browse')">🏠 Browse Units</a>
+    <a href="#" id="navBookings" onclick="showSec('bookings')">📋 My Bookings</a>
+    <div class="sidebar-label">Account</div>
+    <a href="#" id="navProfile" onclick="showSec('profile')">👤 Profile</a>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- BROWSE -->
+    <div id="sec-browse">
+      <div class="page-title">Browse Units</div>
+      <div class="page-subtitle">Find a place that fits your budget and needs</div>
+
+      <!-- Filter bar -->
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px;background:white;padding:12px 16px;border-radius:10px;border:1px solid #e2e8f0;">
+        <span style="font-size:13px;font-weight:500;color:#64748b;">Filter:</span>
+        <select id="filterPrice" onchange="filterListings()"
+          style="padding:7px 12px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;">
+          <option value="">All Prices</option>
+          <option value="5000">Under ₱5,000</option>
+          <option value="10000">Under ₱10,000</option>
+          <option value="20000">Under ₱20,000</option>
+        </select>
+        <select id="filterStatus" onchange="filterListings()"
+          style="padding:7px 12px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;">
+          <option value="">All Status</option>
+          <option value="available">Available</option>
+          <option value="booked">Booked</option>
+        </select>
+        <span id="listingCount" style="margin-left:auto;font-size:12px;color:#94a3b8;"></span>
+      </div>
+
+      <div class="prop-grid" id="listingsGrid">
+        <p style="color:#94a3b8;">Loading listings...</p>
+      </div>
+
+      <!-- About Section -->
+      <div id="aboutSection" style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:36px;margin-top:32px;text-align:center;">
+        <h2 style="font-size:20px;font-weight:700;color:#1e293b;margin-bottom:10px;">About RentReach</h2>
+        <p style="font-size:13px;color:#64748b;line-height:1.9;margin-bottom:14px;max-width:600px;margin-left:auto;margin-right:auto;">
+          RentReach is a simple and reliable apartment listing platform designed to connect renters and landlords across the Dagupan Pangasinan.
+          Whether you're looking for a studio unit, a room to rent, or a place to call home — RentReach makes it easy to find, view, and book rental properties all in one place.
+        </p>
+        <p style="font-size:13px;color:#64748b;line-height:1.9;max-width:600px;margin:0 auto 20px;">
+          We believe that finding a home should be simple, transparent, and stress-free. That's what RentReach is built for.
+        </p>
+        <div style="display:flex;justify-content:center;gap:32px;flex-wrap:wrap;">
+          <div style="text-align:center;">
+            <div style="font-size:24px;font-weight:700;color:#2563eb;">100%</div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Verified Listings</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:24px;font-weight:700;color:#2563eb;">Easy</div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Online Booking</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:24px;font-weight:700;color:#2563eb;">Safe</div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Secure Platform</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY BOOKINGS -->
+    <div id="sec-bookings" style="display:none;">
+      <div class="page-title">My Bookings</div>
+      <div class="page-subtitle">Track your booking and payment status</div>
+      <div id="myBookingsList" style="margin-top:16px;"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div id="sec-profile" style="display:none;">
+      <div class="page-title">My Profile</div>
+      <div class="page-subtitle">Your account details</div>
+      <div class="form-section" style="margin-top:16px;max-width:480px;">
+        <h3>Account Info</h3>
+        <p style="font-size:13px;line-height:2.2;color:#475569;">
+          <strong>Name:</strong> <span id="profName">—</span><br>
+          <strong>Email:</strong> <span id="profEmail">—</span><br>
+          <strong>Role:</strong> <span class="badge badge-blue">Renter</span><br>
+          <strong>Member since:</strong> <span id="profDate">—</span>
+        </p>
+      </div>
+    </div>
+
+  </div><!-- end .main -->
+</div><!-- end .layout -->
+
+<footer style="margin-left:220px;">&copy; <strong>RentReach</strong> 2026 — Authorized access only</footer>
+
+<!-- UNAVAILABLE MODAL -->
+<div class="modal-bg" id="unavailableModal">
+  <div class="modal-box" style="max-width:360px;text-align:center;">
+    <div class="modal-body" style="padding:32px 24px;">
+      <div style="font-size:48px;margin-bottom:12px;">🚫</div>
+      <div style="font-size:17px;font-weight:700;color:#1e293b;margin-bottom:8px;">Unit Unavailable</div>
+      <p style="font-size:13px;color:#64748b;line-height:1.7;margin-bottom:20px;">
+        This unit is currently booked and is not accepting any booking requests at this time.
+        Please check back later or browse other available units.
+      </p>
+      <button class="btn btn-primary btn-full" onclick="closeUnavailableModal()">Browse Other Units</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal-bg" id="bookingModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="modalTitle">Unit Details</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <img id="modalImg" class="modal-img" src="" alt="" style="display:none;">
+      <div class="detail-row" id="modalMeta"></div>
+      <div id="modalDescWrap" style="margin-bottom:16px;display:none;">
+        <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">About this unit</div>
+        <p id="modalDesc" style="font-size:13px;color:#475569;line-height:1.7;background:#f8fafc;padding:12px;border-radius:8px;margin:0;"></p>
+      </div>
+      <div style="border-top:1px solid #f1f5f9;padding-top:16px;">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px;">Request a Booking</div>
+
+        <div class="form-group">
+          <label>Preferred Move-in Date</label>
+          <input type="date" id="moveInDate" onchange="updateBookingTotal()"
+            style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;font-family:'Poppins',sans-serif;">
+        </div>
+
+        <div class="form-group">
+          <label>How many months will you stay?</label>
+          <select id="stayDuration" onchange="updateBookingTotal()"
+            style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;font-family:'Poppins',sans-serif;background:white;">
+            <option value="1">1 month</option>
+            <option value="2">2 months</option>
+            <option value="3">3 months</option>
+            <option value="4">4 months</option>
+            <option value="5">5 months</option>
+            <option value="6">6 months</option>
+            <option value="7">7 months</option>
+            <option value="8">8 months</option>
+            <option value="9">9 months</option>
+            <option value="10">10 months</option>
+            <option value="11">11 months</option>
+            <option value="12">12 months</option>
+          </select>
+        </div>
+
+        <div id="bookingTotalBox" style="background:#f8fafc;border-radius:8px;padding:14px;margin-bottom:14px;display:none;">
+          <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Payment Summary</div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+            <span style="color:#64748b;">Monthly Rent</span>
+            <span>₱<span id="summaryRent">0</span></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+            <span style="color:#64748b;">Duration</span>
+            <span><span id="summaryMonths">1</span> month(s)</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;border-top:1px dashed #e2e8f0;padding-top:8px;margin-top:4px;">
+            <span style="color:#1e293b;">Total Amount</span>
+            <span style="color:#2563eb;">₱<span id="summaryTotal">0</span></span>
+          </div>
+          <div id="monthlyBreakdown" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Message to Landlord <span style="font-weight:400;color:#94a3b8;">(optional)</span></label>
+          <textarea id="bookingMessage" placeholder="Introduce yourself..."
+            style="width:100%;padding:9px 12px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;font-family:'Poppins',sans-serif;resize:vertical;min-height:70px;"></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-full" onclick="submitBooking()">Submit Booking Request</button>
+        <div id="bookingFeedback" style="margin-top:10px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, onSnapshot, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCYvy3GB1vNUPzGdClU1lEx0p-Ypwh996c",
+  authDomain: "rentreach-947b7.firebaseapp.com",
+  projectId: "rentreach-947b7",
+  storageBucket: "rentreach-947b7.firebasestorage.app",
+  messagingSenderId: "146021863979",
+  appId: "1:146021863979:web:6e4029254dcc1e7563906e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentUser = null;
+let allListings = [];
+let selectedUnit = null;
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location.href = "login.html"; return; }
+  currentUser = user;
+
+  const q = query(collection(db, "users"), where("uid", "==", user.uid));
+  const snap = await getDocs(q);
+  snap.forEach(d => {
+    const data = d.data();
+    document.getElementById("profName").textContent = data.name || "—";
+    document.getElementById("profEmail").textContent = data.email || user.email;
+    document.getElementById("profDate").textContent = data.createdAt
+      ? new Date(data.createdAt).toLocaleDateString("en-PH", { year:"numeric", month:"long", day:"numeric" })
+      : "—";
+    if (data.name) document.getElementById("topbarName").textContent = data.name;
+  });
+
+  loadListings();
+});
+
+function doLogoutFn() {
+  signOut(auth).then(() => window.location.href = "login.html");
+}
+window.doLogout = doLogoutFn;
+document.querySelectorAll("#btnLogout").forEach(b => b.addEventListener("click", doLogoutFn));
+
+function loadListings() {
+  onSnapshot(collection(db, "apartments"), snap => {
+    allListings = [];
+    snap.forEach(d => {
+      const raw = d.data();
+      // BUG FIX: Also check imageUrls array (landlord saves images here primarily)
+      const imgUrls = raw.imageUrls || [];
+      const resolvedImg = (Array.isArray(imgUrls) && imgUrls.length > 0)
+        ? imgUrls[0]
+        : (raw.imageUrl || raw.image || null);
+
+      allListings.push({
+        id: d.id,
+        title: raw.title || "Untitled",
+        address: raw.address || raw.location || "—",
+        description: raw.description || "",
+        pricePerMonth: raw.pricePerMonth || raw.price || raw.monthlyRent || 0,
+        rooms: raw.rooms || null,
+        imageUrl: resolvedImg,
+        // BUG FIX: status can also be determined by isAvailable boolean field
+        status: raw.isAvailable === false ? "booked" : (raw.status || "available"),
+        deposit: raw.deposit || 0,
+        advancePayment: raw.advancePayment || 0,
+        // BUG FIX: Store landlord info so booking submissions can include it
+        ownerId: raw.ownerId || raw.landlordUid || null,
+        ownerEmail: raw.ownerEmail || raw.landlordEmail || null,
+      });
+    });
+    document.getElementById("listingCount").textContent = allListings.length + " listings";
+    renderListings(allListings);
+  });
+}
+
+function renderListings(items) {
+  const grid = document.getElementById("listingsGrid");
+  if (!items.length) { grid.innerHTML = '<p style="color:#94a3b8;">No listings found.</p>'; return; }
+  grid.innerHTML = items.map(d => {
+    const img = d.imageUrl || null;
+    const title = d.title || "Untitled";
+    const address = d.address || "—";
+    const price = d.pricePerMonth || 0;
+    const rooms = d.rooms || null;
+    const status = d.status || "available";
+    const isBooked = status === "booked";
+    const bc = isBooked ? "badge-red" : "badge-green";
+
+    return `<div class="prop-card" style="${isBooked ? 'opacity:0.7;cursor:default;' : 'cursor:pointer;'}"
+      onclick="${isBooked ? 'showUnavailable()' : `openModal('${d.id}')`}">
+      <div style="position:relative;">
+        ${img ? `<img src="${img}" style="width:100%;height:170px;object-fit:cover;display:block;${isBooked ? 'filter:grayscale(60%)' : ''}" onerror="this.style.display='none';">` : `<div class="no-img">No photo</div>`}
+        ${isBooked ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
+          <span style="background:rgba(220,38,38,0.9);color:white;font-size:13px;font-weight:700;padding:6px 16px;border-radius:20px;letter-spacing:0.5px;">UNAVAILABLE</span>
+        </div>` : ''}
+      </div>
+      <div class="prop-info">
+        <span class="badge ${bc}">${isBooked ? 'Booked' : 'Available'}</span>
+        <h4 style="margin-top:6px;">${title}</h4>
+        <p class="prop-addr">${address}</p>
+        ${rooms ? `<p style="font-size:12px;color:#64748b;margin-bottom:4px;">🛏 ${rooms} room(s)</p>` : ""}
+        <p class="prop-price">₱${Number(price).toLocaleString()} <span>/mo</span></p>
+      </div>
+      <div class="prop-footer">
+        <button class="btn ${isBooked ? 'btn-outline' : 'btn-primary'} btn-sm" style="width:100%;"
+          onclick="event.stopPropagation();${isBooked ? 'showUnavailable()' : `openModal('${d.id}')`}"
+          ${isBooked ? 'disabled style="cursor:not-allowed;opacity:0.6;"' : ''}>
+          ${isBooked ? 'Unavailable' : 'View & Book'}
+        </button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+window.filterListings = function() {
+  const maxPrice = Number(document.getElementById("filterPrice").value) || Infinity;
+  const statusF = document.getElementById("filterStatus").value;
+  const filtered = allListings.filter(d => {
+    const price = d.pricePerMonth || 0;
+    const status = d.status || "available";
+    return price <= maxPrice && (!statusF || status === statusF);
+  });
+  document.getElementById("listingCount").textContent = filtered.length + " listings";
+  renderListings(filtered);
+};
+
+window.showUnavailable = function() { document.getElementById("unavailableModal").classList.add("open"); };
+window.closeUnavailableModal = function() { document.getElementById("unavailableModal").classList.remove("open"); };
+
+window.openModal = function(id) {
+  selectedUnit = allListings.find(d => d.id === id);
+  if (!selectedUnit) return;
+  const img = selectedUnit.imageUrl || selectedUnit.image || null;
+  const title = selectedUnit.title || "Untitled";
+  const address = selectedUnit.address || "—";
+  const price = selectedUnit.pricePerMonth || 0;
+  const deposit = selectedUnit.deposit || 0;
+  const advance = selectedUnit.advancePayment || 0;
+  const rooms = selectedUnit.rooms || null;
+
+  document.getElementById("modalTitle").textContent = title;
+  const imgEl = document.getElementById("modalImg");
+  if (img) { imgEl.src = img; imgEl.style.display = "block"; } else { imgEl.style.display = "none"; }
+  const descEl = document.getElementById("modalDesc");
+  const descWrap = document.getElementById("modalDescWrap");
+  if (selectedUnit.description && selectedUnit.description.trim()) {
+    descEl.textContent = selectedUnit.description;
+    descWrap.style.display = "block";
+  } else {
+    descEl.textContent = "";
+    descWrap.style.display = "none";
+  }
+  document.getElementById("modalMeta").innerHTML = `
+    <div class="detail-item"><div class="d-label">Price/Month</div><div class="d-val">₱${Number(price).toLocaleString()}</div></div>
+    <div class="detail-item"><div class="d-label">Rooms</div><div class="d-val">${rooms || "—"}</div></div>
+    <div class="detail-item"><div class="d-label">Deposit</div><div class="d-val">₱${Number(deposit).toLocaleString()}</div></div>
+    <div class="detail-item"><div class="d-label">Advance</div><div class="d-val">₱${Number(advance).toLocaleString()}</div></div>
+  `;
+  document.getElementById("bookingFeedback").innerHTML = "";
+  document.getElementById("stayDuration").value = "1";
+  document.getElementById("moveInDate").value = "";
+  document.getElementById("bookingTotalBox").style.display = "none";
+  document.getElementById("monthlyBreakdown").innerHTML = "";
+  document.getElementById("bookingModal").classList.add("open");
+};
+
+window.closeModal = function() { document.getElementById("bookingModal").classList.remove("open"); };
+
+window.updateBookingTotal = function() {
+  if (!selectedUnit) return;
+  const months = parseInt(document.getElementById("stayDuration").value) || 1;
+  const rent = selectedUnit.pricePerMonth || 0;
+  const total = rent * months;
+  const moveIn = document.getElementById("moveInDate").value;
+
+  document.getElementById("summaryRent").textContent = Number(rent).toLocaleString();
+  document.getElementById("summaryMonths").textContent = months;
+  document.getElementById("summaryTotal").textContent = Number(total).toLocaleString();
+  document.getElementById("bookingTotalBox").style.display = "block";
+
+  let breakdownHtml = "";
+  if (moveIn && months > 1) {
+    breakdownHtml = `<div style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Monthly Breakdown</div>`;
+    const start = new Date(moveIn);
+    for (let i = 0; i < months; i++) {
+      const d = new Date(start);
+      d.setMonth(d.getMonth() + i);
+      const label = d.toLocaleDateString("en-PH", { month:"long", year:"numeric" });
+      breakdownHtml += `<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:#64748b;">
+        <span>Month ${i+1} — ${label}</span>
+        <span>₱${Number(rent).toLocaleString()}</span>
+      </div>`;
+    }
+  }
+  document.getElementById("monthlyBreakdown").innerHTML = breakdownHtml;
+};
+
+window.submitBooking = async function() {
+  if (!selectedUnit || !currentUser) return;
+  const moveIn = document.getElementById("moveInDate").value;
+  const months = parseInt(document.getElementById("stayDuration").value) || 1;
+  const message = document.getElementById("bookingMessage").value.trim();
+  const fb = document.getElementById("bookingFeedback");
+  const rent = selectedUnit.pricePerMonth || 0;
+  const totalAmount = rent * months;
+
+  if (!moveIn) { fb.innerHTML = '<div class="alert alert-error">Please select a move-in date.</div>'; return; }
+
+  // BUG FIX: If the apartment's landlord UID is missing (e.g. old data or mobile-app
+  // apartment with no ownerId/landlordUid stored), re-fetch the apartment document
+  // directly so we don't save landlordUid: null and make the booking invisible to the landlord.
+  let landlordUid   = selectedUnit.ownerId   || null;
+  let landlordEmail = selectedUnit.ownerEmail || null;
+
+  if (!landlordUid) {
+    try {
+      const { getDoc, doc: docRef } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+      const snap = await getDoc(docRef(db, "apartments", selectedUnit.id));
+      if (snap.exists()) {
+        const raw = snap.data();
+        landlordUid   = raw.ownerId || raw.landlordUid || raw.uid || null;
+        landlordEmail = raw.ownerEmail || raw.landlordEmail || null;
+      }
+    } catch(e) {
+      console.warn("Could not re-fetch apartment for landlordUid:", e);
+    }
+  }
+
+  try {
+    await addDoc(collection(db, "bookings"), {
+      // Unit reference — saved under multiple field names so both
+      // the website and mobile app can find it regardless of what field they query
+      rentalId:    selectedUnit.id,
+      apartmentId: selectedUnit.id,
+      propertyId:  selectedUnit.id,
+      unitId:      selectedUnit.id,
+      unitName: selectedUnit.title || selectedUnit.description || "Unit",
+      unitAddress: selectedUnit.address || "—",
+      pricePerMonth: rent,
+      price: rent,
+      durationMonths: months,
+      totalAmount,
+      // Tenant reference — saved under multiple field names for cross-platform compatibility
+      tenantUid:  currentUser.uid,
+      userId:     currentUser.uid,
+      renterId:   currentUser.uid,
+      uid:        currentUser.uid,
+      tenantEmail: currentUser.email,
+      // Landlord reference so the landlord dashboard query can find this booking.
+      // landlordUid MUST be set — if it's null the booking won't appear on the landlord dashboard.
+      landlordUid,
+      landlordEmail,
+      moveInDate: moveIn,
+      message,
+      status: "pending",
+      createdAt: Date.now()
+    });
+    fb.innerHTML = `<div class="alert alert-success">Booking request sent! ${months} month(s) — ₱${Number(totalAmount).toLocaleString()} total. The landlord will review it.</div>`;
+    document.getElementById("moveInDate").value = "";
+    document.getElementById("stayDuration").value = "1";
+    document.getElementById("bookingMessage").value = "";
+    document.getElementById("bookingTotalBox").style.display = "none";
+    document.getElementById("monthlyBreakdown").innerHTML = "";
+  } catch(err) {
+    fb.innerHTML = `<div class="alert alert-error">Error: ${err.message}</div>`;
+  }
+};
+
+window.loadMyBookings = async function() {
+  const div = document.getElementById("myBookingsList");
+  div.innerHTML = '<p style="color:#94a3b8;">Loading...</p>';
+
+  // FIX: Query all possible field names the mobile app might use for the user ID
+  // so bookings made from the app also show up here
+  const uid = currentUser.uid;
+  const email = currentUser.email;
+  const [s1, s2, s3, s4, s5] = await Promise.all([
+    getDocs(query(collection(db, "bookings"), where("tenantUid",  "==", uid))),
+    getDocs(query(collection(db, "bookings"), where("userId",     "==", uid))),
+    getDocs(query(collection(db, "bookings"), where("renterId",   "==", uid))),
+    getDocs(query(collection(db, "bookings"), where("uid",        "==", uid))),
+    getDocs(query(collection(db, "bookings"), where("tenantEmail","==", email))),
+  ]);
+
+  const seen = new Set();
+  const combined = [];
+  [s1, s2, s3, s4, s5].forEach(snap => {
+    snap.forEach(d => {
+      if (!seen.has(d.id)) { seen.add(d.id); combined.push({ id: d.id, ...d.data() }); }
+    });
+  });
+
+  if (!combined.length) {
+    div.innerHTML = '<div class="alert alert-info">No bookings yet. Browse listings and submit a request!</div>';
+    return;
+  }
+
+  div.innerHTML = "";
+  const sorted = combined;
+  sorted.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+
+  sorted.forEach(b => {
+    const bookingBadge = b.status === "approved" ? "badge-green" : b.status === "rejected" ? "badge-red" : "badge-yellow";
+    const bookingLabel = b.status === "approved" ? "✅ Approved" : b.status === "rejected" ? "❌ Rejected" : "⏳ Pending";
+
+    let paymentHtml = "";
+    if (b.status === "approved") {
+      const ps = b.paymentStatus || "pending";
+      const totalDue = b.totalDue || b.price || 0;
+      const totalPaid = b.totalPaid || 0;
+      const balance = b.balance !== undefined ? b.balance : totalDue;
+      const history = b.paymentHistory || [];
+      const monthlySchedule = b.monthlySchedule || [];
+
+      const payBadge = ps === "paid" ? "badge-green" : ps === "partial" ? "badge-blue" : "badge-yellow";
+      const payLabel = ps === "paid" ? "Fully Paid" : ps === "partial" ? "Partially Paid" : "Unpaid";
+
+      const scheduleRows = monthlySchedule.map(m => {
+        const sc = m.status === "paid" ? "#16a34a" : m.status === "partial" ? "#2563eb" : "#dc2626";
+        const sl = m.status === "paid" ? "Paid" : m.status === "partial" ? "Partial" : "Unpaid";
+        return `<div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;font-size:12px;padding:5px 0;border-bottom:1px solid #f1f5f9;align-items:center;">
+          <span style="color:#475569;">${m.label}</span>
+          <span style="color:#64748b;">₱${Number(m.paid||0).toLocaleString()} / ₱${Number(m.amount).toLocaleString()}</span>
+          <span style="font-weight:600;color:${sc};">${sl}</span>
+        </div>`;
+      }).join("");
+
+      const historyRows = history.map(p => `
+        <div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #f1f5f9;">
+          <span style="color:#475569;">₱${Number(p.amount).toLocaleString()} <span style="color:#94a3b8;">— ${p.note || "Payment"}</span></span>
+          <span style="color:#94a3b8;">${new Date(p.date).toLocaleDateString("en-PH")}</span>
+        </div>`).join("");
+
+      paymentHtml = `
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid #f1f5f9;font-size:13px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-weight:600;color:#475569;">Payment</span>
+            <span class="badge ${payBadge}">${payLabel}</span>
+          </div>
+          <div style="color:#64748b;line-height:2;margin-bottom:10px;">
+            Total Due: <strong>₱${Number(totalDue).toLocaleString()}</strong><br>
+            Total Paid: <strong style="color:#16a34a;">₱${Number(totalPaid).toLocaleString()}</strong><br>
+            Remaining Balance: <strong style="color:#dc2626;">₱${Number(balance).toLocaleString()}</strong>
+          </div>
+          ${monthlySchedule.length > 0 ? `<div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:5px;">Monthly Schedule</div><div style="margin-bottom:10px;">${scheduleRows}</div>` : ""}
+          ${history.length > 0 ? `<div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:5px;">Payment History</div>${historyRows}` : ""}
+        </div>`;
+    }
+
+    div.innerHTML += `
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-body">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+            <div>
+              <div style="font-size:15px;font-weight:600;margin-bottom:4px;">${b.unitName || "—"}</div>
+              <div style="font-size:12px;color:#64748b;">📍 ${b.unitAddress || "—"}</div>
+              <div style="font-size:12px;color:#64748b;margin-top:2px;">
+                💰 ₱${Number(b.pricePerMonth || b.price||0).toLocaleString()}/mo &nbsp;|&nbsp; 📅 Move-in: ${b.moveInDate || "—"}
+                ${b.durationMonths ? `&nbsp;|&nbsp; 🗓 ${b.durationMonths} month(s)` : ""}
+              </div>
+              ${b.message ? `<div style="font-size:12px;color:#94a3b8;margin-top:4px;font-style:italic;">"${b.message}"</div>` : ""}
+            </div>
+            <span class="badge ${bookingBadge}" style="align-self:flex-start;white-space:nowrap;">${bookingLabel}</span>
+          </div>
+          ${paymentHtml}
+        </div>
+      </div>`;
+  });
+};
+</script>
+
+<script>
+function showSec(name) {
+  ["browse","bookings","profile"].forEach(s => {
+    document.getElementById("sec-" + s).style.display = s === name ? "block" : "none";
+  });
+  document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
+  const navMap = { browse:"navBrowse", bookings:"navBookings", profile:"navProfile" };
+  if (navMap[name]) document.getElementById(navMap[name]).classList.add("active");
+  if (name === "bookings" && window.loadMyBookings) window.loadMyBookings();
+}
+</script>
+</body>
+</html>

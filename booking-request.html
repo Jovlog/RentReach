@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booking Requests – RentReach</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div class="navbar">
+  <a class="navbar-brand" href="#">Rent<span>Reach</span></a>
+  <div class="navbar-right">
+    <span class="badge badge-green">Landlord</span>
+    <!-- BUG FIX: Back button linked to non-existent landlord.html; corrected to landlord-dashboard.html -->
+    <button class="btn btn-outline btn-sm" onclick="window.location.href='landlord-dashboard.html'">← Back</button>
+    <button class="btn btn-danger btn-sm" id="btnLogout">Logout</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-label">Menu</div>
+    <a href="landlord-dashboard.html">🏠 Dashboard</a>
+    <a href="booking-request.html" class="active">📋 Booking Requests</a>
+  </div>
+
+  <div class="main">
+    <div class="page-title">Booking Requests</div>
+    <div class="page-subtitle">All incoming booking requests from tenants</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Unit</th><th>Tenant</th><th>Move-in</th><th>Status</th></tr>
+        </thead>
+        <tbody id="bookingRequests">
+          <tr><td colspan="4" style="color:#94a3b8;text-align:center;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer>&copy; <strong>RentReach</strong> 2026 — Authorized access only</footer>
+
+<!-- BUG FIX: Added missing Firebase script to actually load and display booking requests -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCYvy3GB1vNUPzGdClU1lEx0p-Ypwh996c",
+  authDomain: "rentreach-947b7.firebaseapp.com",
+  projectId: "rentreach-947b7",
+  storageBucket: "rentreach-947b7.firebasestorage.app",
+  messagingSenderId: "146021863979",
+  appId: "1:146021863979:web:6e4029254dcc1e7563906e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+onAuthStateChanged(auth, user => {
+  if (!user) { window.location.href = "login.html"; return; }
+  // Only show bookings belonging to this landlord's units
+  const q = query(collection(db, "bookings"), where("landlordUid", "==", user.uid));
+  onSnapshot(q, snap => {
+    const tb = document.getElementById("bookingRequests");
+    if (snap.empty) {
+      tb.innerHTML = '<tr><td colspan="4" style="color:#94a3b8;text-align:center;padding:20px;">No booking requests yet.</td></tr>';
+      return;
+    }
+    tb.innerHTML = "";
+    snap.forEach(d => {
+      const b = d.data();
+      const bc = b.status === "approved" ? "badge-green" : b.status === "rejected" ? "badge-red" : "badge-yellow";
+      tb.innerHTML += `<tr>
+        <td>${b.unitName || "—"}</td>
+        <td>${b.tenantEmail || "—"}</td>
+        <td>${b.moveInDate || "—"}</td>
+        <td><span class="badge ${bc}">${b.status || "pending"}</span></td>
+      </tr>`;
+    });
+  });
+});
+
+document.getElementById("btnLogout")?.addEventListener("click", () => {
+  signOut(auth).then(() => window.location.href = "login.html");
+});
+</script>
+</body>
+</html>
